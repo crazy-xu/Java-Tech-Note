@@ -1,4 +1,5 @@
-在家里或者公司中，一般会参与多个项目的开发，对应个人或者公司的项目，提交时需要使用不同的git用户名/Email，用来区分。
+在家里或者公司中，一般会参与多个项目的开发。对应个人或者公司的项目，提交时需要使用不同的git用户名/Email。
+
 大部分情况下，git配置时使用全局配置，即多个项目使用一个用户名。
 
 ### 全局配置
@@ -17,7 +18,9 @@
 > git config user.email "xxx@163.com"
 
 > 如下为本机操作时执行的命令
+> 
 > ~/Documents/code/test/Java-Tech-Note$git config user.name "crazy-xu"
+> 
 > ~/Documents/code/test/Java-Tech-Note$git config user.email "youxu66@163.com"
 
 
