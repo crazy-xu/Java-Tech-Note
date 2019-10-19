@@ -15,6 +15,7 @@
 ### 项目单独配置
 找到项目所在的目录，与.git平级，在命令行中执行如下命令：
 > git config user.name "xxx"
+> 
 > git config user.email "xxx@163.com"
 
 > 如下为本机操作时执行的命令
