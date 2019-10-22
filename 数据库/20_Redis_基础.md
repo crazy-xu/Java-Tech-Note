@@ -1,6 +1,8 @@
 ## 1.1 Redis介绍
 全称是REmote DIctionary Service，直接翻译过来是远程字典服务。
+
 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件。
+
 支持多种类型的数据结构，如字符串（strings），散列（hashes），列表（lists），集合（sets），有序集合（sorted sets）与范围查询，bitmaps，hyperloglogs和地理空间（geospatial）索引半径查询。Redis内置了复制（replication），LUA脚本（Lua scripting），LRU驱动事件（LRU eviction），事务（transactions） 和不同级别的磁盘持久化（persistence），并通过Redis哨兵（Sentinel）和自动分区（Cluster）提供高可用性（high availability）。
 
 ## 1.2 SQL与NoSQL
@@ -89,10 +91,14 @@ Redis 一共有几种数据类型？（注意是数据类型不是数据结构�
 Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simply bitmaps)、HyperLogLogs、Streams
 最基本也是最常用的数据类型就是String。set和get命令就是String的操作命令。
 
+
+当字符串长度小于1M时，扩容都是加倍现有的空间，如果超过1M，扩容时一次只会多扩1M的空间。(字符串最大长度为 512M)，通过checkStringLength()来检测容量大小。
+
 不同类型的数据结构的差异就在于value的结构不一样。但是这个key使用的结构，都是字符串类型。
 
 ### 1.4.1 String字符串
 可以用来存储字符串、整数、浮点数。
+
 
 * SET key value [EX seconds] [PX milliseconds] [NX|XX]
 > * 如果key已经持有其他值，SET就覆写旧值， 无视类型。
@@ -181,6 +187,8 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
         SDS 和传统的 C 字符串获得的做法不同，传统的C字符串遍历字符串的长度，遇零则止，复杂度为O(n)。而SDS表头的len成员就保存着字符串长度，所以获得字符串长度的操作复杂度为O(1)。
         总结下sds的特点是：可动态扩展内存、二进制安全、快速遍历字符串 和与传统的C语言字符串类型兼容。
 
+
+  
 
 
 
