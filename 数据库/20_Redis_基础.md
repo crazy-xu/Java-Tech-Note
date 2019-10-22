@@ -84,11 +84,14 @@ Redis是字典结构的存储方式，采用key-value存储。key和value的最�
 ##1.4 Redis基本数据类型
 
 Redis 一共有几种数据类型？（注意是数据类型不是数据结构）
+
 官网：[https://redis.io/topics/data-types-intro](https://redis.io/topics/data-types-intro)
 Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simply bitmaps)、HyperLogLogs、Streams
 最基本也是最常用的数据类型就是String。set和get命令就是String的操作命令。
 
-#### 1.4.1 String字符串
+不同类型的数据结构的差异就在于value的结构不一样。但是这个key使用的结构，都是字符串类型。
+
+### 1.4.1 String字符串
 可以用来存储字符串、整数、浮点数。
 
 * SET key value [EX seconds] [PX milliseconds] [NX|XX]
@@ -164,7 +167,19 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 > 
 > GETRANGE 通过保证子字符串的值域(range)不超过实际字符串的值域来处理超出范围的值域请求。
 
-
+#### 存储（实现）原理
+    
+    Redis是KV的数据库，它是通过tashtable实现的，每个键值对都会有一个dictEntry（源码位置：dict.h），里面指向了key和value的指针。next指向下一个dictEntry。
+    
+    SDS:
+        全拼为：simple dynamic string，解释为：简单动态字符串。
+        数据结构与API相关文件是：sds.h, sds.c。
+        SDS本质上就是char *，因为有了表头sdshdr结构的存在，所以SDS比传统C字符串在某些方面更加优秀，并且能够兼容传统C字符串。
+        sds在Redis中是实现字符串对象的工具，并且完全取代char*..sds是二进制安全的，它可以存储任意二进制数据，不像C语言字符串那样以‘\0’来标识字符串结束，
+        因为传统C字符串符合ASCII编码，这种编码的操作的特点就是：遇零则止 。即，当读一个字符串时，只要遇到’\0’结尾，就认为到达末尾，就忽略’\0’结尾以后的所有字符。因此，如果传统字符串保存图片，视频等二进制文件，操作文件时就被截断了。
+        SDS表头的buf被定义为字节数组，因为判断是否到达字符串结尾的依据则是表头的len成员，这意味着它可以存放任何二进制的数据和文本数据，包括’\0’
+        SDS 和传统的 C 字符串获得的做法不同，传统的C字符串遍历字符串的长度，遇零则止，复杂度为O(n)。而SDS表头的len成员就保存着字符串长度，所以获得字符串长度的操作复杂度为O(1)。
+        总结下sds的特点是：可动态扩展内存、二进制安全、快速遍历字符串 和与传统的C语言字符串类型兼容。
 
 
 
