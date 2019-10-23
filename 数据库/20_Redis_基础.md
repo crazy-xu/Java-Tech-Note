@@ -175,22 +175,67 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 
 #### 存储（实现）原理
     
-    Redis是KV的数据库，它是通过tashtable实现的，每个键值对都会有一个dictEntry（源码位置：dict.h），里面指向了key和value的指针。next指向下一个dictEntry。
+Redis是KV的数据库，它是通过hashtable实现的，每个键值对都会有一个dictEntry（源码位置：dict.h），里面指向了key和value的指针。next指向下一个dictEntry。
+
+key是字符串，但是Redis没有直接使用C的字符数组，而是存储在自定义的SDS中。
+value既不是直接作为字符串存储，也不是直接存储在SDS中，而是存储在redisObject中。五种常用类型，都是通过redisObject存储的。
+
+##### SDS:
+> 全拼为：simple dynamic string，解释为：简单动态字符串。
+> 数据结构与API相关文件是：sds.h, sds.c。
+> SDS本质上就是char *，因为有了表头sdshdr结构的存在，所以SDS比传统C字符串在某些方面更加优秀，并且能够兼容传统C字符串。
+> sds在Redis中是实现字符串对象的工具，并且完全取代char*..sds是二进制安全的，它可以存储任意二进制数据，不像C语言字符串那样以‘\0’来标识字符串结束，
+> 因为传统C字符串符合ASCII编码，这种编码的操作的特点就是：遇零则止 。即，当读一个字符串时，只要遇到’\0’结尾，就认为到达末尾，就忽略’\0’结尾以后的所有字符。因此，如果传统字符串保存图片，视频等二进制文件，操作文件时就被截断了。
+> SDS表头的buf被定义为字节数组，因为判断是否到达字符串结尾的依据则是表头的len成员，这意味着它可以存放任何二进制的数据和文本数据，包括’\0’
+> SDS 和传统的 C 字符串获得的做法不同，传统的C字符串遍历字符串的长度，遇零则止，复杂度为O(n)。而SDS表头的len成员就保存着字符串长度，所以获得字符串长度的操作复杂度为O(1)。
+> 总结下sds的特点是：可动态扩展内存、二进制安全、快速遍历字符串 和与传统的C语言字符串类型兼容。
+> SDS又有多种结构（sds.h）：sdshdr5、sdshdr8、sdshdr16、sdshdr32、sdshdr64，用于存储不同的长度的字符串，分别代表 2^5=32byte，2^8=256byte，2^16=65536byte=64KB，2^32byte=4GB。
+
+
+    src/dict.h
+    typedef struct dictEntry {
+        void *key;
+        union {
+            void *val;
+            uint64_t u64;
+            int64_t s64;
+            double d;
+        } v;
+        struct dictEntry *next;
+    } dictEntry;
     
-    SDS:
-        全拼为：simple dynamic string，解释为：简单动态字符串。
-        数据结构与API相关文件是：sds.h, sds.c。
-        SDS本质上就是char *，因为有了表头sdshdr结构的存在，所以SDS比传统C字符串在某些方面更加优秀，并且能够兼容传统C字符串。
-        sds在Redis中是实现字符串对象的工具，并且完全取代char*..sds是二进制安全的，它可以存储任意二进制数据，不像C语言字符串那样以‘\0’来标识字符串结束，
-        因为传统C字符串符合ASCII编码，这种编码的操作的特点就是：遇零则止 。即，当读一个字符串时，只要遇到’\0’结尾，就认为到达末尾，就忽略’\0’结尾以后的所有字符。因此，如果传统字符串保存图片，视频等二进制文件，操作文件时就被截断了。
-        SDS表头的buf被定义为字节数组，因为判断是否到达字符串结尾的依据则是表头的len成员，这意味着它可以存放任何二进制的数据和文本数据，包括’\0’
-        SDS 和传统的 C 字符串获得的做法不同，传统的C字符串遍历字符串的长度，遇零则止，复杂度为O(n)。而SDS表头的len成员就保存着字符串长度，所以获得字符串长度的操作复杂度为O(1)。
-        总结下sds的特点是：可动态扩展内存、二进制安全、快速遍历字符串 和与传统的C语言字符串类型兼容。
+##### RedisObject
 
+    /** redisObject定义在src/server.h文件中。*/
+    typedef struct redisObject {
+        unsigned type:4;
+        unsigned encoding:4; /* 字符串有3种编码 */
+        unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+                                * LFU data (least significant 8 bits frequency
+                                * and most significant 16 bits access time). */
+        int refcount; /* 当它为0时，说明没有引用，可以进行内存回收 */
+        void *ptr; /* 指向真正的类型 */
+    } robj;
 
-  
+##### 字符串类型的内部编码有三种：
+> 1、int，存储8个字节的长整型（long，2^63-1）。
+> 
+> 2、embstr, 代表embstr格式的SDS（SimpleDynamicString简单动态字符串），存储小于44个字节的字符串。
+> 
+> 3、raw，存储大于44个字节的字符串。
 
+**_embstr和raw的区别？_**
+> embstr 的使用只分配一次内存空间（因为RedisObject 和SDS是连续的）， 而 raw需要分配两次内存空间（分别为RedisObject和SDS分配空间）。
 
+> 因此与 raw 相比，embstr 的好处在于创建时少分配一次空间，删除时少释放一次空间，以及对象的所有数据连在一起，寻找方便。
+> 
+> 而 embstr 的坏处也很明显，如果字符串的长度增加需要重新分配内存时，整个RedisObject和SDS都需要重新分配空间，因此 Redis 中的 embstr 实现为只读。
 
+**_int和embstr什么时候转化为raw？_**
+> 当 int 数 据 不 再 是 整 数 ， 或 大 小 超 过 了 long 的 范 围（2^63-1=9223372036854775807）时，自动转化为 embstr
+
+**_明明没有超过阈值，为什么变成raw了？_**
+> 对于embstr，由于其实现是只读的，因此在对embstr对象进行修改时，都会先转化为 raw 再进行修改。
+  因此，只要是修改embstr对象，修改后的对象一定是raw的，无论是否达到了44个字节。
 
 
