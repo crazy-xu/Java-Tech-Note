@@ -363,5 +363,16 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 >
 > 若key不存在，返回一个空表。
 
+#### 存储（实现）原理
+外层的Hash（Redis KV的实现）只用到了hashtable。当存储hash数据类型时，我们把它叫做内层的哈希，内层的哈希底层使用了两种数据结构实现：
+* ziplist:OBJ_ENCODING_ZIPLIST(压缩列表)
+* hashtable:OBJ_ENCODING_HT(哈希表)
+
+当hash对象同时满足以下两个条件的时候，使用ziplist编码：
+1、所有的键值对的键和值得字符串长度都小于等于64byte（一个英文字母一个字节）。
+2、hash对象保存的键值对数量小于512个。
+一个hash对象超过配置的阈值时，会转换成hash表（hashtable）。
+
+
 
 
