@@ -45,8 +45,7 @@
 
 Redis是字典结构的存储方式，采用key-value存储。key和value的最大长度限制是512M，来自[官网](https://redis.io/topics/data-types-intro)
 
-#### Redis启动：
-
+#### Redis启动
 > 配置后台启动：daemonize yes
 > 
 > 启动Redis：/usr/local/soft/redis-5.0.5/src/redis-server /usr/local/soft/redis-5.0.5/redis.conf
@@ -55,7 +54,24 @@ Redis是字典结构的存储方式，采用key-value存储。key和value的最�
 > 
 > 也可以配置alias redis='/usr/local/soft/redis-5.0.5/src/redis-server /usr/local/soft/redis-5.0.5/redis.conf'
 
-#### 基本操作：
+#### Redis关闭
+> ps -ef | grep redis
+> 
+> kill -9 ****
+
+#### Redis打开客户端
+* 如果没设置密码可直接登录
+> /usr/local/soft/redis-5.0.5/src/redis-cli 或者在根目录执行redis-cli
+* 设置密码后以如上方法登录，执行语句是会返回
+> (error) NOAUTH Authentication required.
+> 
+> 此时可以执行auth myPassword获取权限
+* 设置密码后通过密码直接登录
+> redis-cli -h 127.0.0.1 -p 6379 -a myPassword
+>
+> **注：-h/-p 可以直接忽略，可直接执行redis-cli -a myPassword**
+
+#### 基本操作
 
 默认有16个库（0-15），可以在配置文件中修改，默认使用第一个db0。
 
@@ -261,3 +277,57 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 > 具体参考String类型的BITCOUNT方法，说实话，我不太懂。。。！@#￥%……&*（）
 
 ### 1.4.2 Hash哈希
+包含键值对的无序散列表。value 只能是字符串，不能嵌套其他类型。
+
+* HSET hash field value
+> 时间复杂度：O(1)
+> 
+> 将哈希表hash中域field的值设置为value。
+> 
+> 如果给定的哈希表并不存在，那么一个新的哈希表将被创建并执行HSET操作。
+> 
+> 如果域field已经存在于哈希表中，那么它的旧值将被新值value覆盖。
+>
+> 当HSET命令在哈希表中新创建field域并成功为它设置值时，命令返回1；如果域field已经存在于哈希表，并且HSET命令成功使用新值覆盖了它的旧值，那么命令返回0。
+
+* HSETNX hash field value
+> 时间复杂度：O(1)
+> 
+> 当且仅当域 field 尚未存在于哈希表的情况下， 将它的值设置为 value 。
+> 
+> 如果给定域已经存在于哈希表当中， 那么命令将放弃执行设置操作。
+> 
+> 如果哈希表 hash 不存在， 那么一个新的哈希表将被创建并执行 HSETNX 命令。
+>
+> HSETNX 命令在设置成功时返回1， 在给定域已经存在而放弃执行设置操作时返回0。
+
+* HGET hash field
+> 时间复杂度：O(1)
+> 
+> HGET 命令在默认情况下返回给定域的值。
+> 
+> 如果给定域不存在于哈希表中，又或者给定的哈希表并不存在，那么命令返回nil。
+
+* HEXISTS hash field
+> 时间复杂度：O(1)
+> 
+> 检查给定域field是否存在于哈希表hash当中。
+> 
+> HEXISTS命令在给定域存在时返回1，在给定域不存在时返回0。
+
+* HDEL key field [field …]
+> 时间复杂度：O(N)， N 为要删除的域的数量。
+> 
+> 删除哈希表 key 中的一个或多个指定域，不存在的域将被忽略。
+
+* HLEN key
+> O(1)。哈希表中域的数量。当key不存在时，返回0。
+
+* HSTRLEN key field
+> O(1)。与给定域field相关联的值的字符串长度（string length）。如果给定的键或者域不存在，那么命令返回0。
+
+
+
+
+
+
