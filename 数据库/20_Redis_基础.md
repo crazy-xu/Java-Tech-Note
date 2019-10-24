@@ -175,7 +175,7 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 * DECRBY key decrement
 > 将键 key 储存的整数值减去减量 decrement 。
 > 
-> 如果键 key 不存在， 那么键 key 的值会先被初始化为 0 ， 然后再执行 DECRBY 命令。
+> 如果键 key 不存在， 那么键 key 的值会先被初始化为0，然后再执行 DECRBY 命令。
 > 
 > 如果键 key 储存的值不能被解释为数字， 那么 DECRBY 命令将返回一个错误。
 
@@ -183,9 +183,9 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 > 返回键 key 储存的字符串值的长度。当键 key 不存在时，命令返回0。当 key 储存的不是字符串值时，返回一个错误。
 
 * GETRANGE key start end
-> 返回键 key 储存的字符串值的指定部分， 字符串的截取范围由 start 和 end 两个偏移量决定 (包括 start 和 end 在内)。
+> 返回键 key 储存的字符串值的指定部分，字符串的截取范围由 start 和 end 两个偏移量决定 (包括 start 和 end 在内)。
 > 
-> 负数偏移量表示从字符串的末尾开始计数， -1 表示最后一个字符， -2 表示倒数第二个字符， 以此类推。
+> 负数偏移量表示从字符串的末尾开始计数，-1表示最后一个字符，-2表示倒数第二个字符，以此类推。
 > 
 > GETRANGE 通过保证子字符串的值域(range)不超过实际字符串的值域来处理超出范围的值域请求。
 
@@ -272,7 +272,7 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 * 5、计数器
 > int类型，incr方法，文章的阅读量、微博点赞数，访问量等等。
 * 6、限流
-> int类型，incr方法，以访问者的IP作为key，没访问一次，次数加一，限制次数。
+> int类型，incr方法，以访问者的IP作为key，每访问一次，次数加一，限制次数。
 * 7、位统计
 > 具体参考String类型的BITCOUNT方法，说实话，我不太懂。。。！@#￥%……&*（）
 
@@ -326,8 +326,42 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 * HSTRLEN key field
 > O(1)。与给定域field相关联的值的字符串长度（string length）。如果给定的键或者域不存在，那么命令返回0。
 
+* hincrby key field increment
+> 为哈希表key中的域field的值加上增量increment。其也可以是负数，相当于给定域进行减法操作。
+> 
+> 如果key不存在，一个新的哈希表被创建并执行hincrby命令。
+> 
+> 如果field不存在，那么执行命令前，域的值被初始化为0。
+> 
+> 对一个存储字符串值得域field执行hincrby命令将造成一个错误。((error) ERR hash value is not an integer)
+> 
+> 本操作的值被限制在64位（bit）符号数字表示之内。
 
+* hincrbyfloat key field increment
+> 为哈希表key中的域field加上浮点数增量increment。
 
+* hmset key field value [field value...]
+> 同时将多个field-value(域-值)对设置到哈希表key中。
+> 
+> 此命令会覆盖哈希表中已存在的域。如果key不存在，一个空哈希表被创建并执行HMSET操作。
+
+* hmget key field [field...]
+> 返回哈希表key中，一个或多个给定域的值。如果给定的域不存在于哈希表，那么返回一个nil值。
+
+* hkeys key
+> 返回哈希表key中的所有域。时间复杂度：o(n)。
+> 
+> 当key不存在时，返回一个空表。(empty list or set)
+
+* hvals key
+> 返回哈希表key中所有域的值。时间复杂度：o(n)。
+> 
+> 当key不存在时，返回一个空表。(empty list or set)
+
+* hgetall key
+> 返回哈希表key中，所有的域和值。在返回值里，紧跟每个域名(field name)之后是域的值(value)，所以返回值的长度是哈希表大小的两倍。
+>
+> 若key不存在，返回一个空表。
 
 
 
