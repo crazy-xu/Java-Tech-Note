@@ -369,10 +369,19 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 * hashtable:OBJ_ENCODING_HT(哈希表)
 
 当hash对象同时满足以下两个条件的时候，使用ziplist编码：
+
 1、所有的键值对的键和值得字符串长度都小于等于64byte（一个英文字母一个字节）。
+
+    # redis.conf ziplist 中最大能存放的值长度
+    hash-max-ziplist-value 64
 2、hash对象保存的键值对数量小于512个。
+
+    # redis.conf ziplist 中最多能存放的 entry 节点数量
+    hash-max-ziplist-entries 512
 一个hash对象超过配置的阈值时，会转换成hash表（hashtable）。
 
 
 
 
+
+ 
