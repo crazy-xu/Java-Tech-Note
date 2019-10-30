@@ -112,7 +112,7 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 
 不同类型的数据结构的差异就在于value的结构不一样。但是这个key使用的结构，都是字符串类型。
 
-### 1.4.1 String字符串
+### 1.4.1 String 字符串
 可以用来存储字符串、整数、浮点数。
 
 
@@ -276,7 +276,7 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 * 7、位统计
 > 具体参考String类型的BITCOUNT方法，说实话，我不太懂。。。！@#￥%……&*（）
 
-### 1.4.2 Hash哈希
+### 1.4.2 Hash 哈希
 包含键值对的无序散列表。value 只能是字符串，不能嵌套其他类型。
 
 * HSET hash field value
@@ -382,6 +382,59 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 
 
 
+### 1.4.3 List 列表
+
+存储有序的字符串（从左到右），元素可以重复。可以充当队列和栈的角色。
+
+使用PUSH命令，允许加入重复数据。
+
+* LPUSH key value [value …]
+> 将一个或多个值 value 插入到列表 key 的表头
+> 
+> 如果有多个 value 值，那么各个 value 值按从左到右的顺序依次插入到表头：比如说，对空列表 mylist 执行命令 LPUSH mylist a b c，列表的值将是 c b a，这等同于原子性地执行 LPUSH mylist a、LPUSH mylist b 和 LPUSH mylist c 三个命令。
+> 
+> 如果 key 不存在，一个空列表会被创建并执行 LPUSH 操作。
+> 
+> 当 key 存在但不是列表类型时，返回一个错误。正确返回值是列表的长度。
+
+* LPUSHX key value
+> 将值 value 插入到列表 key 的表头，当且仅当 key 存在并且是一个列表。和 LPUSH key value 命令相反，当 key 不存在时，LPUSHX命令什么也不做。
+
+* RPUSH key value [value …]
+> 将一个或多个值 value 插入到列表 key 的表尾(最右边)。
+> 
+> 如果有多个 value 值，那么各个 value 值按从左到右的顺序依次插入到表尾：比如对一个空列表 mylist 执行 RPUSH mylist a b c ，得出的结果列表为 a b c ，等同于执行命令 RPUSH mylist a 、 RPUSH mylist b 、 RPUSH mylist c 。
+> 
+> 如果 key 不存在，一个空列表会被创建并执行 RPUSH 操作。
+> 
+> 当 key 存在但不是列表类型时，返回一个错误。
+
+* RPUSHX key value
+> 将值 value 插入到列表 key 的表尾，当且仅当 key 存在并且是一个列表。和 RPUSH key value 命令相反，当 key 不存在时， RPUSHX 命令什么也不做。
+
+* LPOP key
+> 移除并返回列表 key 的头元素。
+
+* RPOP key
+> 移除并返回列表 key 的尾元素。
 
 
- 
+
+### 1.4.4 Set 集合
+
+
+
+
+### 1.4.5 Sorted Set 有序集合
+
+
+
+
+### 1.4.6 HyperLogLog
+
+
+
+
+### 1.4.7 Streams
+
+
