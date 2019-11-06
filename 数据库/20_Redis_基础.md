@@ -422,19 +422,119 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 
 ### 1.4.4 Set 集合
 
+String 类型的无序集合，最大存储数量 2^32-1（40 亿左右）。
 
+Redis 用 intset 或 hashtable 存储 set。如果元素都是整数类型，就用 inset 存储。如果不是整数类型，就用 hashtable（数组+链表的存来储结构）。如果元素个数超过 512 个，也会用 hashtable 存储。
 
+* SADD key member [member …]
+> 将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略。
+> 
+> 假如 key 不存在，则创建一个只包含 member 元素作成员的集合。
+> 
+> 当 key 不是集合类型时，返回一个错误。
+
+* SISMEMBER key member
+> 如果 member 元素是集合的成员，返回1。 如果 member 元素不是集合的成员，或 key 不存在，返回0。
+
+* SPOP key
+> 移除并返回集合中的一个随机元素。被移除的随机元素。 当 key 不存在或 key 是空集时，返回 nil。
+
+* SRANDMEMBER key [count]
+> 如果命令执行时，只提供了 key 参数，那么返回集合中的一个随机元素。
+> 
+> 从 Redis 2.6 版本开始， SRANDMEMBER 命令接受可选的 count 参数：
+> 
+> * 如果 count 为正数，且小于集合基数，那么命令返回一个包含 count 个元素的数组，数组中的元素各不相同。如果 count 大于等于集合基数，那么返回整个集合。
+> 
+> * 如果 count 为负数，那么命令返回一个数组，数组中的元素可能会重复出现多次，而数组的长度为 count 的绝对值。
+> 
+> 该操作和 SPOP key 相似，但 SPOP key 将随机元素从集合中移除并返回，而 SRANDMEMBER 则仅仅返回随机元素，而不对集合进行任何改动。
+
+* SREM key member [member …]
+> 移除集合key中的一个或多个member元素，不存在的member元素会被忽略。
+
+* SMOVE source destination member
+> 将 member 元素从 source 集合移动到 destination 集合。
+> 
+> SMOVE 是原子性操作。
+> 
+> 如果 source 集合不存在或不包含指定的 member 元素，则 SMOVE 命令不执行任何操作，仅返回 0 。否则， member 元素从 source 集合中被移除，并添加到 destination 集合中去。
+> 
+> 当 destination 集合已经包含 member 元素时， SMOVE 命令只是简单地将 source 集合中的 member 元素删除。
+> 
+> 当 source 或 destination 不是集合类型时，返回一个错误。
+
+* SCARD key
+> 返回集合 key 的基数(集合中元素的数量)。
+
+* SMEMBERS key
+> 返回集合 key 中的所有成员。（不存在即返回(empty list or set)）
+
+* SINTER key [key …]
+> 返回一个集合的全部成员，该集合是所有给定集合的交集。
+
+* SDIFF key [key …]
+> 返回一个集合的全部成员，该集合是所有给定集合之间的差集。
+
+* SUNION key [key …]
+> 返回一个集合的全部成员，该集合是所有给定集合的并集。
 
 ### 1.4.5 Sorted Set 有序集合
+Sorted Set，有序的set，每个元素有个score。score 相同时，按照 key 的 ASCII 码排序。
 
-
-
+* ZADD key score member [[score member] [score member] …]
+> 将一个或多个 member 元素及其 score 值加入到有序集 key 当中。
+> 
+> 如果某个 member 已经是有序集的成员，那么更新这个 member 的 score 值，并通过重新插入这个 member 元素，来保证该 member 在正确的位置上。
+> 
+> score 值可以是整数值或双精度浮点数。
+> 
+> 如果 key 不存在，则创建一个空的有序集并执行 ZADD 操作。
+> 
+> 当 key 存在但不是有序集类型时，返回一个错误。
 
 ### 1.4.6 HyperLogLog
 
 
-
-
 ### 1.4.7 Streams
+
+
+### 1.4.8 发布与订阅
+
+* publish channel message
+> 将信息 message 发送到指定的频道channel。
+> 接收到信息 message 的订阅者数量。
+
+* subscribe channel[channel...]
+> 订阅给定的一个或者多个频道
+> 返回值：
+    
+    127.0.0.1:6379> publish test crazy
+    (integer) 1
+    
+    127.0.0.1:6379> subscribe test
+    Reading messages... (press Ctrl-C to quit)
+    1) "subscribe"      # 返回值的类型：显示订阅成功
+    2) "test"           # 订阅的频道名字
+    3) (integer) 1      # 目前已订阅的频道数量
+    1) "message"        # 返回值的类型：信息
+    2) "test"           # 来源(从那个频道发送过来)
+    3) "crazy"          # 信息内容
+
+* psubscribe pattern [pattern...]
+> 订阅一个或者多个符合给定模式的频道。
+> 
+> 每个模式以*作为匹配符，比如it*匹配所有以it开头的频道（it.abc,it.blog等等）。
+
+* unsubscribe [channel [channel...]]
+> 指示客户端退订给定的频道。
+> 
+> 如果没有频道被指定，也即是，一个无参数的 UNSUBSCRIBE 调用被执行，那么客户端使用 SUBSCRIBE 命令订阅的所有频道都会被退订。在这种情况下，命令会返回一个信息，告知客户端所有被退订的频道。
+
+
+
+
+
+
 
 
