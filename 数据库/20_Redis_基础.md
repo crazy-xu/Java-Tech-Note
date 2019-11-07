@@ -500,7 +500,6 @@ Sorted Set，有序的set，每个元素有个score。score 相同时，按照 k
 
 
 ### 1.4.8 发布与订阅
-
 * publish channel message
 > 将信息 message 发送到指定的频道channel。
 > 接收到信息 message 的订阅者数量。
@@ -533,8 +532,4 @@ Sorted Set，有序的set，每个元素有个score。score 相同时，按照 k
 
 
 
-
-
-
-
-
+此处省略好多，不太了解......
