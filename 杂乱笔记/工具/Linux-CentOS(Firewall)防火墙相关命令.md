@@ -26,7 +26,7 @@ CentOS 7默认安装了firewalld，如果没有安装的话，则需要YUM命令
 ### 开启防火墙
 > systemctl start firewalld
 ### 重启防火墙
-> * systemctl stop firewalld
+> * systemctl restart firewalld
 > * firewall-cmd --reload
 
 ### 停止防火墙
