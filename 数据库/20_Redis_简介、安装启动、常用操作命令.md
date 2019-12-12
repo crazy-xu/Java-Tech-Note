@@ -45,8 +45,28 @@
 
 Redis是字典结构的存储方式，采用key-value存储。key和value的最大长度限制是512M，来自[官网](https://redis.io/topics/data-types-intro)
 
+#### Redis安装
+1、下载Redis
+> wget http://download.redis.io/releases/redis-5.0.5.tar.gz  // 自己指定目录/usr/local/soft/
+
+2、解压压缩包
+> tar -zxvf redis-5.0.5.tar.gz
+
+3、安装gcc依赖，C语言编写的，编译需要
+> yum install gcc   
+
+4、编译安装
+> cd redis-5.0.5
+
+> make MALLOC=libc
+
+将/usr/local/soft/redis-5.0.5/src目录下二进制文件安装到/usr/local/bin
+> cd src
+> 
+> make install
+
 #### Redis启动
-> 配置后台启动：daemonize yes
+> 配置后台启动：/usr/local/soft/redis-5.0.5/redis.conf  --> daemonize yes
 > 
 > 启动Redis：/usr/local/soft/redis-5.0.5/src/redis-server /usr/local/soft/redis-5.0.5/redis.conf
 > 
