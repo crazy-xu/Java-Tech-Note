@@ -65,10 +65,16 @@ Redis是字典结构的存储方式，采用key-value存储。key和value的最�
 > 
 > make install
 
-#### Redis启动
-> 配置后台启动：/usr/local/soft/redis-5.0.5/redis.conf  --> daemonize yes
+#### Redis配置
+> /usr/local/soft/redis-5.0.5/redis.conf
 > 
-> 启动Redis：/usr/local/soft/redis-5.0.5/src/redis-server /usr/local/soft/redis-5.0.5/redis.conf
+> 配置后台启动：daemonize no --> daemonize yes
+> 
+> 配置外网访问：bind 127.0.0.1 --> bind 0.0.0.0 或注释
+>
+> 配置密码访问：requirepass yourpassword
+#### Redis启动
+> /usr/local/soft/redis-5.0.5/src/redis-server /usr/local/soft/redis-5.0.5/redis.conf
 > 
 > redis 的参数可以通过三种方式配置，一种是指定自己的redis.conf，一种是启动时--携带的参数，一种是动态config set。
 > 
