@@ -58,6 +58,10 @@ rpm -e --nodeps xxx
 > cat /var/log/mysqld.log | grep -i 'temporary password'
 
 ### 登录数据库，修改密码
+> mysql -u root -p
+> 
+> 然后输入密码
+> 
 > ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
 > 
 > ERROR 1819 (HY000): Your password does not satisfy the current policy requirements
