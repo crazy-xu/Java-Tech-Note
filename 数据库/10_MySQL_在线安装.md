@@ -91,8 +91,25 @@ rpm -e --nodeps xxx
 * 最后，切记要进行刷新，否则更新无效。
 > FLUSH PRIVILEGES;
 
+### Navicat 登录报错
+* 1251-client does not support authentication protocol requested by server;
+> select host,user,plugin,authentication_string from mysql.user;
+> 
+> plugin非mysql_native_password 则需要修改密码
+```
+mysql> select host,user,plugin,authentication_string from mysql.user;
++-----------+------------------+-----------------------+------------------------------------------------------------------------+
+| host      | user             | plugin                | authentication_string                                                  |
++-----------+------------------+-----------------------+------------------------------------------------------------------------+
+| %         | root             | caching_sha2_password | $A$005$z?z7`ladu(}dJaKVmodzlJOxMKknMEAHdlswDrRDz/4lYqgA0ujOylOqUA |
+| localhost | mysql.infoschema | caching_sha2_password | $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED |
+| localhost | mysql.session    | caching_sha2_password | $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED |
+| localhost | mysql.sys        | caching_sha2_password | $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED |
++-----------+------------------+-----------------------+------------------------------------------------------------------------+
+4 rows in set (0.00 sec)
 
-
+mysql>ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'newpassword';#更新一下用户的密码 root用户密码为newpassword
+```
 
 
 
