@@ -470,6 +470,10 @@ String 类型的无序集合，最大存储数量 2^32-1（40 亿左右）。
 
 Redis 用 intset 或 hashtable 存储 set。如果元素都是整数类型，就用 inset 存储。如果不是整数类型，就用 hashtable（数组+链表的存来储结构）。如果元素个数超过 512 个，也会用 hashtable 存储。
 
+存储结构：intset，hashtable.
+
+intset转hashtable 默认是512个
+
 * SADD key member [member …]
 > 将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略。
 > 
@@ -522,6 +526,16 @@ Redis 用 intset 或 hashtable 存储 set。如果元素都是整数类型，就
 
 * SUNION key [key …]
 > 返回一个集合的全部成员，该集合是所有给定集合的并集。
+
+``
+set1{a,b,c} set2{b,c,d}
+获取差集
+sdiff set1 set2 {a}
+获取交集
+sinter set1 set2 {b,c}
+获取并集
+sunion set1 set2 {a,b,c,d}
+``
 
 ### 1.4.5 Sorted Set 有序集合
 Sorted Set，有序的set，每个元素有个score。score 相同时，按照 key 的 ASCII 码排序。
