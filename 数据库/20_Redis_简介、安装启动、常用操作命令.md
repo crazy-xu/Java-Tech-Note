@@ -3,7 +3,9 @@
 
 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件。
 
-支持多种类型的数据结构，如字符串（strings），散列（hashes），列表（lists），集合（sets），有序集合（sorted sets）与范围查询，bitmaps，hyperloglogs和地理空间（geospatial）索引半径查询。Redis内置了复制（replication），LUA脚本（Lua scripting），LRU驱动事件（LRU eviction），事务（transactions） 和不同级别的磁盘持久化（persistence），并通过Redis哨兵（Sentinel）和自动分区（Cluster）提供高可用性（high availability）。
+支持多种类型的数据结构，如字符串（strings），散列（hashes），列表（lists），集合（sets），有序集合（sorted sets）与范围查询，bitmaps，
+hyperloglogs和地理空间（geospatial）索引半径查询。Redis内置了复制（replication），LUA脚本（Lua scripting），LRU驱动事件（LRU eviction），
+事务（transactions） 和不同级别的磁盘持久化（persistence），并通过Redis哨兵（Sentinel）和自动分区（Cluster）提供高可用性（high availability）。
 
 ## 1.2 SQL与NoSQL
 关系型数据库SQL，在大部分情况下，我们都会首先考虑用它来存储数据，比如使用MySQL、Oracle、SQLServer等等。
@@ -160,26 +162,26 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 > 命令在设置成功时返回1，设置失败时返回0。
 
 * MSET key value [key value …]
-> 如果某个给定键已经存在， 那么 MSET 将使用新值去覆盖旧值， 如果这不是你所希望的效果， 请考虑使用 MSETNX 命令， 这个命令只会在所有给定键都不存在的情况下进行设置。
+> 如果某个给定键已经存在，那么 MSET 将使用新值去覆盖旧值，如果这不是你所希望的效果，请考虑使用 MSETNX 命令，这个命令只会在所有给定键都不存在的情况下进行设置。
 > 
-> MSET 是一个原子性(atomic)操作， 所有给定键都会在同一时间内被设置， 不会出现某些键被设置了但是另一些键没有被设置的情况。
+> MSET 是一个原子性(atomic)操作，所有给定键都会在同一时间内被设置，不会出现某些键被设置了但是另一些键没有被设置的情况。
 
 * MGET key [key …]
 > 返回给定的一个或多个字符串键的值。
 >
-> 如果给定的字符串键里面， 有某个键不存在， 那么这个键的值将以特殊值 nil 表示。
+> 如果给定的字符串键里面，有某个键不存在，那么这个键的值将以特殊值 nil 表示。
 
 * APPEND key value
-> 如果键 key 已经存在并且它的值是一个字符串， APPEND 命令将把 value 追加到键 key 现有值的末尾。
+> 如果键 key 已经存在并且它的值是一个字符串，APPEND 命令将把 value 追加到键 key 现有值的末尾。
 > 
-> 如果 key 不存在， APPEND 就简单地将键 key 的值设为 value ， 就像执行 SET key value 一样。
+> 如果 key 不存在，APPEND 就简单地将键 key 的值设为 value，就像执行 SET key value 一样。
 
 * INCR key
 > 为键 key 储存的数字值加上一。
 > 
-> 如果键 key 不存在， 那么它的值会先被初始化为 0 ， 然后再执行 INCR 命令。
+> 如果键 key 不存在，那么它的值会先被初始化为 0，然后再执行 INCR 命令。
 > 
-> 如果键 key 储存的值不能被解释为数字， 那么 INCR 命令将返回一个错误((error) ERR value is not an integer or out of range)。
+> 如果键 key 储存的值不能被解释为数字，那么 INCR 命令将返回一个错误((error) ERR value is not an integer or out of range)。
 > 
 > INCR 命令会返回键 key 在执行加一操作之后的值。
 
@@ -196,18 +198,18 @@ Binary-safe strings、Lists、Sets、Sorted sets、Hashes、Bit arrays (or simpl
 * DECR key
 > 为键 key 储存的数字值减去一。
 > 
-> 如果键 key 不存在， 那么键 key 的值会先被初始化为 0 ， 然后再执行 DECR 操作。
+> 如果键 key 不存在，那么键 key 的值会先被初始化为 0，然后再执行 DECR 操作。
 > 
-> 如果键 key 储存的值不能被解释为数字， 那么 DECR 命令将返回一个错误((error) ERR value is not an integer or out of range)。
+> 如果键 key 储存的值不能被解释为数字，那么 DECR 命令将返回一个错误((error) ERR value is not an integer or out of range)。
 > 
 > DECR 命令会返回键 key 在执行减一操作之后的值。
 
 * DECRBY key decrement
-> 将键 key 储存的整数值减去减量 decrement 。
+> 将键 key 储存的整数值减去减量 decrement。
 > 
-> 如果键 key 不存在， 那么键 key 的值会先被初始化为0，然后再执行 DECRBY 命令。
+> 如果键 key 不存在，那么键 key 的值会先被初始化为0，然后再执行 DECRBY 命令。
 > 
-> 如果键 key 储存的值不能被解释为数字， 那么 DECRBY 命令将返回一个错误。
+> 如果键 key 储存的值不能被解释为数字，那么 DECRBY 命令将返回一个错误。
 
 * STRLEN key
 > 返回键 key 储存的字符串值的长度。当键 key 不存在时，命令返回0。当 key 储存的不是字符串值时，返回一个错误。
@@ -231,12 +233,12 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 > 数据结构与API相关文件是：sds.h, sds.c。
 > SDS本质上就是char *[]，因为有了表头sdshdr结构的存在，所以SDS比传统C字符串在某些方面更加优秀，并且能够兼容传统C字符串。
 > sds在Redis中是实现字符串对象的工具，并且完全取代char*..sds是二进制安全的，它可以存储任意二进制数据，不像C语言字符串那样以‘\0’来标识字符串结束，
-> 因为传统C字符串符合ASCII编码，这种编码的操作的特点就是：遇零则止 。即，当读一个字符串时，只要遇到’\0’结尾，就认为到达末尾，就忽略’\0’结尾以后的所有字符。因此，如果传统字符串保存图片，视频等二进制文件，操作文件时就被截断了。
+> 因为传统C字符串符合ASCII编码，这种编码的操作的特点就是：遇零则止。即，当读一个字符串时，只要遇到’\0’结尾，就认为到达末尾，就忽略’\0’结尾以后的所有字符。因此，如果传统字符串保存图片，视频等二进制文件，操作文件时就被截断了。
 > SDS表头的buf被定义为字节数组，因为判断是否到达字符串结尾的依据则是表头的len成员，这意味着它可以存放任何二进制的数据和文本数据，包括’\0’
 > SDS 和传统的 C 字符串获得的做法不同，传统的C字符串遍历字符串的长度，遇零则止，复杂度为O(n)。而SDS表头的len成员就保存着字符串长度，所以获得字符串长度的操作复杂度为O(1)。
-> 总结下sds的特点是：可动态扩展内存、二进制安全、快速遍历字符串 和与传统的C语言字符串类型兼容。
+> 总结下sds的特点是：可动态扩展内存、二进制安全、快速遍历字符串和与传统的C语言字符串类型兼容。
 > SDS又有多种结构（sds.h）：sdshdr5、sdshdr8、sdshdr16、sdshdr32、sdshdr64，用于存储不同的长度的字符串，分别代表 2^5=32byte，2^8=256byte，2^16=65536byte=64KB，2^32byte=4GB。
- 
+
 
     src/dict.h
     typedef struct dictEntry {
@@ -269,7 +271,7 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
         void *ptr; /* 指向真正的类型 */
     } robj;
 
-##### 字符串类型的内部编码有三种：object encoding key
+##### 字符串类型的内部编码有三种：查看编码：object encoding key
 > 1、int，存储8个字节的长整型（long，2^63-1）。
 > 
 > 2、embstr, 代表embstr格式的SDS（SimpleDynamicString简单动态字符串），存储小于44个字节的字符串。
@@ -277,19 +279,19 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 > 3、raw，存储大于44个字节的字符串。
 
 **_embstr和raw的区别？_**
-> embstr 的使用只分配一次内存空间（因为RedisObject 和SDS是连续的）， 而 raw需要分配两次内存空间（分别为RedisObject和SDS分配空间）。
+> embstr的使用只分配一次内存空间（因为RedisObject和SDS是连续的），而raw需要分配两次内存空间（分别为RedisObject和SDS分配空间）。
 
-> 因此与 raw 相比，embstr 的好处在于创建时少分配一次空间，删除时少释放一次空间，以及对象的所有数据连在一起，寻找方便。
+> 因此与 raw 相比，embstr的好处在于创建时少分配一次空间，删除时少释放一次空间，以及对象的所有数据连在一起，寻找方便。
 > 
 > 而 embstr 的坏处也很明显，如果字符串的长度增加需要重新分配内存时，整个RedisObject和SDS都需要重新分配空间，因此Redis中的embstr实现为只读。
 >
-> embstr类型追加字符时，会自动编程raw，因为它的类型是只读的。
+> embstr类型追加字符时，会自动变成raw，因为它的类型是只读的。
 
 **_int和embstr什么时候转化为raw？_**
-> 当int数据不再是整数，或大小超过了long的范围（2^63-1=9223372036854775807）时，自动转化为embstr
+> 当int数据不再是整数，或大小超过了long的范围（2^63-1=9223372036854775807）时，自动转化为embstr。
 
 **_明明没有超过阈值，为什么变成raw了？_**
-> 对于embstr，由于其实现是只读的，因此在对embstr对象进行修改时，都会先转化为 raw 再进行修改。
+> 对于embstr，由于其实现是只读的，因此在对embstr对象进行修改时，都会先转化为raw再进行修改。
   因此，只要是修改embstr对象，修改后的对象一定是raw的，无论是否达到了44个字节。
 
 **_当长度小于阈值时，会还原吗？_**
@@ -331,13 +333,13 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
 * HSETNX hash field value
 > 时间复杂度：O(1)
 > 
-> 当且仅当域 field 尚未存在于哈希表的情况下， 将它的值设置为 value 。
+> 当且仅当域 field 尚未存在于哈希表的情况下，将它的值设置为 value。
 > 
-> 如果给定域已经存在于哈希表当中， 那么命令将放弃执行设置操作。
+> 如果给定域已经存在于哈希表当中，那么命令将放弃执行设置操作。
 > 
-> 如果哈希表 hash 不存在， 那么一个新的哈希表将被创建并执行 HSETNX 命令。
+> 如果哈希表 hash 不存在，那么一个新的哈希表将被创建并执行 HSETNX 命令。
 >
-> HSETNX 命令在设置成功时返回1， 在给定域已经存在而放弃执行设置操作时返回0。
+> HSETNX 命令在设置成功时返回1，在给定域已经存在而放弃执行设置操作时返回0。
 
 * HGET hash field
 > 时间复杂度：O(1)
@@ -418,7 +420,7 @@ value既不是直接作为字符串存储，也不是直接存储在SDS中，而
     hash-max-ziplist-entries 512
 一个hash对象超过配置的阈值时，会转换成hash表（hashtable）。
 
-
+ziplist是一个经过特殊编码的，由连续内存块组成的双向链表。它不存储指向上一个链表节点和指向下一个链表节点的指针，而是存储上一个节点长度和当前节点长度。
 
 ### 1.4.3 List 列表
 
