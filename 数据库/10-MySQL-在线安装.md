@@ -111,10 +111,37 @@ mysql> select host,user,plugin,authentication_string from mysql.user;
 mysql>ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'newpassword';#更新一下用户的密码 root用户密码为newpassword
 ```
 
+## CentOS7 yum方式安装MySQL 5.7
+> 在CentOS中默认安装有MariaDB（MySQL的一个分支），安装完成之后可以直接覆盖MariaDB。
 
+### 下载yum repository
+``
+wget -i -c http://dev.mysql.com/get/mysql57-community-release-el7-10.noarch.rpm
+``
+### 安装
+``
+yum -y install mysql57-community-release-el7-10.noarch.rpm
+``
+### 安装MySQL服务器
+``
+yum -y install mysql-community-server
+``
 
+### 启动MySQL
+``
+systemctl start  mysqld.service
+``
+### 查看运行状态
+``
+systemctl status mysqld.service
+``
 
+### 找到MySQL root用户的初始密码：
+``
+grep "password" /var/log/mysqld.log
+``
 
+### 登录，如上8.0安装，授权远程访问，修改密码，不可设置简单密码。
 
 
 
