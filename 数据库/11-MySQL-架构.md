@@ -1,4 +1,4 @@
-### 客户端与服务端链接
+## 客户端与服务端链接
 通讯类型：同步/异步<br />
 连接方式：长链接/短连接<br />
 > 短连接，用完即关闭<br />
@@ -29,6 +29,7 @@ MySQL默认最大连接会话数：151，最大值可以调整100000。官网【
 MySQL中的参数（变量）分为session和global级别，分别在当前会话和全局生效，但并不是每个参数都有两个级别，比如max_connections只有全局级别。<br />
 当没有带参数的时候，默认是session级别，包括查询和修改。
 
+## 查询SQL执行
 
 ### 缓存
 ``
@@ -81,9 +82,14 @@ SHOW STATUS LIKE 'Last_query_cost';
 
 * 执行引擎 Query Execution Engine：利用存储引擎提供的API完成数据查询，并返回数据给客户端。
 
-### Innodb 内存缓冲区 buffer pool
+![image 查询语句执行流程](https://raw.githubusercontent.com/crazy-xu/Java-Tech-Note/master/%E6%95%B0%E6%8D%AE%E5%BA%93/image/10-MySQL-08-%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B.png)
 
-1、读数据时先去buffer pool看一下数据页 ，是否在里边，是，直接返回
+## 更新SQL执行Innodb
+update 操作是包含update、insert和delete的。
+更新流程和查询流程基本是一致的，要经过解析器、优化器，最后交给执行器，区别是拿到符合条件的数据之后的操作。
+
+### Innodb 内存缓冲区 buffer pool
+1、读数据时先去buffer pool看一下数据页 ，是否在里边，是，直接返回，不是则读取后就写到这个内存的缓冲区。
 2、修改数据时，先把修改的数据页放入buffer pool中，不是立即写入到磁盘文件中，操作快。
 从内存区域没有同步到磁盘文件时，是脏页，后台有个线程刷脏。
 
