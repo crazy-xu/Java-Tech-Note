@@ -91,20 +91,51 @@
 > 负责读取Java字节代码，并转换成java.lang.Class类的一个实例的代码模块。
 > 
 > 类加载器除了用于加载类外，还可用于确定类在Java虚拟机中的唯一性。
- 
+> 
+> 一个类在同一个类加载器中具有唯一性(Uniqueness)，而不同类加载器中是允许同名类存在的，这里的同名是指全限定名相同。但是在整个JVM里，纵然全限定名相同，若类加载器不同，则仍然不算作是同一个类，无法通过 instanceOf 、equals 等方式的校验。
 
 
+* 1）Bootstrap ClassLoader
+> 负责加载$JAVA_HOME中 jre/lib/rt.jar 里所有的class或Xbootclassoath选项指定的jar包。由C++实现，不是ClassLoader子类。
+* 2）Extension ClassLoader
+> 负责加载java平台中扩展功能的一些jar包，包括$JAVA_HOME中jre/lib/*.jar 或 -Djava.ext.dirs指定目录下的jar包。
+* 3）App ClassLoader
+> 负责加载classpath中指定的jar包及 Djava.class.path 所指定目录下的类和jar包。
+* 4）Custom ClassLoader  
+> 通过java.lang.ClassLoader的子类自定义加载class，属于应用程序根据自身需要自定义的ClassLoader，如tomcat、jboss都会根据j2ee规范自行实现ClassLoader。
 
+三种基础的类加载器做为我们的三种不同的信任级别。最可信的级别是java核心API类。然后是安装的拓展类，最后才是在类路径中的类（属于你本机的类）。
 
+```
+public static void main(String[] args) {
+    System.out.println(new Party().getClass());
+    System.out.println(new Party().getClass().getClassLoader());
+    System.out.println(new Party().getClass().getClassLoader().getParent());
+    System.out.println(new Party().getClass().getClassLoader().getParent().getParent());
+    System.out.println(new String().getClass().getClassLoader());
+}
+class com.lzfinance.bt.party.entity.Party
+sun.misc.Launcher$AppClassLoader@7b7035c6
+sun.misc.Launcher$ExtClassLoader@3da997a
+null
+null
+```
 
+### JVM类加载机制的三种方式
 
+* 全盘负责，当一个类加载器负责加载某个Class时，该Class所依赖的和引用的其他Class也将由该类加载器负责载入，除非显示使用另外一个类加载器来载入。
 
+* 父类委托，“双亲委派”是指子类加载器如果没有加载过该目标类，就先委托父类加载器加载该目标类，只有在父类加载器找不到字节码文件的情况下才从自己的类路径中查找并装载目标类。
 
+* 缓存机制，缓存机制将会保证所有加载过的Class都将在内存中缓存，当程序中需要使用某个Class时，类加载器先从内存的缓存区寻找该Class，只有缓存区不存在，系统才会读取该类对应的二进
+  制数据，并将其转换成Class对象，存入缓存区。这就是为什么修改了Class后，必须重启JVM，程序的修改才会生效.对于一个类加载器实例来说，相同全名的类只加载一次，即 loadClass方法不会被重复调用。
 
-
-
-
-
-
-
-
+> “双亲委派”机制只是Java推荐的机制，并不是强制的机制。
+> 
+> 我们可以继承java.lang.ClassLoader类，实现自己的类加载器。如果想保持双亲委派模型，就应该重写findClass(name)方法；如果想破坏双亲委派模型，可以重写loadClass(name)方法。
+#### 打破双亲委派
+* SPI
+> JDK提供接口，供应商提供服务。编程人员编码时面向接口编程，然后JDK能够自动找到合适的实现。
+* OSGI
+> OSGi实现模块化热部署的关键则是它自定义的类加载器机制的实现。每一个程序模块都有一个自己的类加载器，当需要更换一个程序模块时，就把程序模块连同类加载器一起换掉以实现代码的热替换。
+* 自定义类加载器
