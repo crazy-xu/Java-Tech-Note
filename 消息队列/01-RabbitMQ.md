@@ -150,7 +150,7 @@ emmmmm....不常用。
 
 
 
-##### 1、安装Erlang 21.3
+#### 1、安装Erlang 21.3
 
 安装依赖
 
@@ -178,7 +178,7 @@ yum -y install gcc glibc-devel make ncurses-devel openssl-devel xmlto perl wget
 > yum install -y socat
 > ```
 
-##### 2、配置Erlang环境变量
+#### 2、配置Erlang环境变量
 
 > ```
 > vim /etc/profile
@@ -198,21 +198,201 @@ yum -y install gcc glibc-devel make ncurses-devel openssl-devel xmlto perl wget
 
 
 
-##### 3、验证Erlang是否安装成功
+#### 3、验证Erlang是否安装成功
 
 输入`erl`，会出现版本信息，即安装成功
 
-##### 4、安装RabbitMQ 3.8.15
+```
+[root@VM-0-16-centos sbin]# erl
+Erlang/OTP 22 [erts-10.7] [source] [64-bit] [smp:2:2] [ds:2:2:10] [async-threads:1] [hipe]
 
-##### 5、配置RabbitMQ环境变量
+Eshell V10.7  (abort with ^G)
+1> 
+退出命令：halt(). * exit命令是不管用滴
+```
 
-##### 6、启动RabbitMQ
+#### 4、安装RabbitMQ 3.8.15
 
-##### 7、添加用户
+> https://github.com/rabbitmq/rabbitmq-server/releases 下载安装包，版本自己选择。我这选择3.8.15
+>
+> ```
+> # 解压
+> xz -d rabbitmq-server-generic-unix-3.8.15.tar.xz
+> tar -xvf rabbitmq-server-generic-unix-3.8.15.tar 
+> ```
 
-##### 8、启用管理插件
+#### 5、配置RabbitMQ环境变量
 
-##### 9、访问http://IP:15672
+> 自己指定下载目录，假设在/usr/local
+>
+> ```
+> vim /etc/profile
+> ```
+
+添加一行
+
+```
+export PATH=$PATH:/usr/local/rabbitmq_server-3.8.15/sbin
+```
+
+编译生效
+
+```
+source /etc/profile
+```
+
+#### 6、启动RabbitMQ
+
+```
+# 后台启动rabbitmq服务
+cd /usr/local/rabbitmq_server-3.8.15/sbin
+
+./rabbitmq-server -detached
+或者
+./rabbitmq-server start
+或者
+service rabbitmq-server start
+```
+
+看到兔子头像就启动成功了
+
+![image-20210518110123015](image-20210518110123015.png)
+
+#### 7、添加用户
+
+因为guest用户只能在本机访问，添加一个admin用户，密码是admin123
+
+```
+./rabbitmqctl add_user admin admin123
+./rabbitmqctl set_user_tags admin administrator
+./rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+```
+
+#### 8、启用管理插件
+
+```
+./rabbitmq-plugins enable rabbitmq_management
+```
+
+#### 9、访问http://IP:15672
+
+**大功告成喽~**
+
+
+
+### RabbitMQ 延时投递
+
+#### 1、Message TTL （Time To Live）
+
+* 队列消息过期属性（x-message-ttl）,所有队列中的消息超过时间未被消费时，都会过期。
+
+  * > ```java
+    > @Bean("ttlQueue")
+    > public Queue queue() {
+    >     Map<String, Object> map = new HashMap<String, Object>();
+    >     // 队列中的消息未被消费11秒后过期
+    >     map.put("x-message-ttl", 11000);
+    >     return new Queue("MESSAGE_TTL_QUEUE", true, false, false, map);
+    > }
+    > ```
+
+* 消息过期属性，指定某个消息过期时间。
+
+  * > ```java
+    > MessageProperties messageProperties = new MessageProperties();
+    > messageProperties.setExpiration("4000"); // 消息的过期属性，单位ms
+    > messageProperties.setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+    > Message message = new Message("这条消息4秒后过期".getBytes(), messageProperties);
+    > rabbitTemplate.send("MESSAGE_TTL_EXCHANGE", "expiration.ttl", message);
+    > ```
+
+如果同时指定了Message TTL 和 Queue TTl, 则小的那个时间生效。
+
+有了过期时间还不够，这个消息不能直接丢弃，不然就没法消费了，丢到一个容器里面，实现延迟消费。**死信队列**
+
+#### 2、死信
+
+队列在创建的时候可以指定一个死信交换机DLX(Dead Letter Exchange)。死信交换机绑定的队列被称为死信队列DLQ(Dead Letter Queue)，DLX也是普通的交换机，DLQ也是普通的队列。
+
+消息过期之后，队列指定了死信交换机DLX，就会发送到死信交换机DLX，如果死信交换机DLX绑定了死信队列DLQ，就会路由到死信队列DLQ，路由到死信队列DLQ之后，就可以进行消费。
+
+**生产者-->原交换机-->原队列（超过TTL之后）-->死信交换机-->死信队列-->消费者**
+
+缺点：
+
+> 1、如果该消息时间梯度非常多，例如1分钟，2分钟，3分钟，10分钟等等，需要创建较多交换机和队列路由消息。
+>
+> 2、单独设置消息的TTL，有可能会造成队列中的消息阻塞，前一条还没出队被消费，后边的消息无法投递（第一条消息TTL是30分钟，第二条是10分钟，10分钟后，应该先消费第二条，由于第一条还没出队，后边的无法出队。）
+>
+> 3、多次交互，会存在一定的时间误差。
+
+#### 3、插件rabbitmq-delayed-message-exchange
+
+下载安装，自己百度吧。。。。。
+
+声明一个x-delayed-message类型的Exchange来使用delayed-mesaging特性。x-delayed-message是该插件提供的类型，与自带的（direct/topic/fanout/headers）不同。
+
+```java
+@Bean("delayExchange")
+public TopicExchange exchange() {
+    Map<String, Object> argss = new HashMap<String, Object>();
+    argss.put("x-delayed-type", "direct");
+    return new TopicExchange("GP_DELAY_EXCHANGE", true, false, argss);
+}
+```
+
+* 生产者 消息属性得指定x-delay参数
+
+  > ```
+  > MessageProperties messageProperties = new MessageProperties();
+  > // 延迟的间隔时间，目标时刻减去当前时刻，或者多长时间后执行
+  > messageProperties.setHeader("x-delay", delayTime.getTime() - now.getTime());
+  > Message message = new Message(msg.getBytes(), messageProperties);
+  > 
+  > // 不能在本地测试，必须发送消息到安装了插件的服务端
+  > rabbitTemplate.send("DELAY_EXCHANGE", "#", message);
+  > ```
+
+
+
+* 注：除了消息过期，还有什么情况消息会变成死信？
+  * 1、消息被消费者拒绝并且未设置重回队列：（nack||reject）&& requeue == false;
+  * 2、队列达到最大长度，超过Max length(消息数)或者Max length bytes(字节数),最先入队的消息会被发送到DLX。
+
+### RabbitMQ 服务端流控
+
+> https://www.rabbitmq.com/configure.html
+
+#### 1、队列长度
+
+* x-max-length：队列中最大存储消息数，超过这个数量，对头的消息会被丢弃。
+* x-max-length-bytes：队列中存储的最大消息容量（bytes），超过这个容量，对头的消息会被丢弃。
+
+> 这两个参数，当消息满足条件时，会删除先入队的消息。
+
+#### 2、内存控制
+
+RabbitMQ 在启动时，会检测机器的物理内存数值。默认当MQ占用40%以上内存时，会主动抛出一个内存警告并阻塞所有连接。可以通过修改rabbitmq.config文件来调整内存阈值，默认值是0.4。如果设置成0，则所有的消息都不能发布。
+
+#### 3、磁盘控制
+
+通过磁盘来控制消息的发布，当磁盘剩余可用空间低于指定的值时（默认是50MB），触发流控措施。
+
+可以指定为磁盘的30%或者2GB。
+
+### RabbitMQ 消费端限流
+
+默认情况下，RabbitMQ会尽可能的把队列中的消息发送给消费者。因为消费者会在本地存储消息，如果消息过多，可能会导致OOM或者影响其他进程的正常运行。
+
+可以基础Consumer或者Channel设置prefetch count的值，含义为Consumer端的最大的unacked message 数目。当超过这个数值的消息未被确认，RabbitMQ会停止投递新的消息给消费者。
+
+```java
+// 非自动确认消息的前提下，如果一定数目的消息（通过基于consume或者channel设置Qos的值）未被确认前，不进行消费新的消息。
+channel.basicQos(2);
+channel.basicConsume(QUEUE_NAME, false, consumer);
+```
+
+
 
 
 
