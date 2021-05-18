@@ -256,7 +256,7 @@ service rabbitmq-server start
 
 看到兔子头像就启动成功了
 
-![image-20210518110123015](image-20210518110123015.png)
+![image-20210518110123015](image/01-RabbitMQ-安装成功页面.png)
 
 #### 7、添加用户
 
