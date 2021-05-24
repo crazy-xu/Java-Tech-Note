@@ -183,6 +183,56 @@ RabbitMQ提供了消费者的消息确认机制，消费者可以自动或者手
 
 
 
+```java
+spring.rabbitmq.listener.direct.acknowledge-mode=
+spring.rabbitmq.listener.simple.acknowledge-mode=
+```
+
+* AcknowledgeMode.NONE：不确认
+* AcknowledgeMode.MANUAL：手动确认
+* AcknowledgeMode.AUTO：自动确认--如果未抛出异常，则发送ack。如果抛出异常，并且不是AmqpRejectAndDontRequeueException()则发送nack，并且重新入队列。如果抛出异常是AmqpRejectAndDontRequeueException()，则发送nack，不会重新入队列。
+
+```java
+// 拒绝消息 requeue：是否重新入队列，true：是；false：直接丢弃，相当于告诉队列可以直接删除掉
+channel.basicReject(envelope.getDeliveryTag(), false);
+// 批量拒绝
+// requeue：是否重新入队列
+channel.basicNack(envelope.getDeliveryTag(), true, false);
+// 手工应答
+// 如果不应答，队列中的消息会一直存在，重新连接的时候会重复消费
+channel.basicAck(envelope.getDeliveryTag(), true);
+```
+
+> 如果requeue参数设置为true，可以把这条消息重新存入队列，以便发给下一个消费者。（如果只有一个消费者的时候，这种方式可以会出现无限循环重复消费的情况）
+
+### 5、生产者如何知道是否消费成功
+
+### 6、消费者回调
+
+### 7、补偿机制
+
+### 8、消息幂等性
+
+### 9、最终一致
+
+### 10、消息顺序性
+
+
+
+## RabbitMQ 集群
+
+集群有两种节点类型，一种是磁盘节点（disc Node）,一种是内存节点（RAM Node）.
+
+* 磁盘节点：将元数据（包括队列名字属性、交换机类型名字属性、绑定、vhost）放在磁盘中。未指定类型的情况下，默认为磁盘节点。
+
+  > 集群中至少需要一个磁盘节点用来持久化元数据，否则全部内存节点崩溃时，就无法同步元数据。
+
+* 内存节点：将元数据放在内存中。
+
+  > 内存节点会将磁盘节点的地址存放在磁盘，如果是持久化的消息，会同时存放在内存和磁盘。
+
+
+
 
 
 
