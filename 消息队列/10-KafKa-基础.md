@@ -1,4 +1,4 @@
-## 一、初识Kafka
+
 
     Kafka是由LinkedIn公司采用Scala语言开发的一个多分区、多副本且基于ZooKeeper协调的分布式消息系统。
     定位是分布式流式处理平台，以高吞吐、可持久化、可水平扩展、支持流数据处理等多种特性而被广泛使用。
@@ -12,16 +12,59 @@
 ### 1.1 基本概念
 
     Kafka体系架构是由若干Producer、若干Borker、若干Consumer，以及一个Zookeeper集群。
-
+    
     (1)Producer：生产者，发送消息的一方。生产者负责创建消息，然后将消息发送到Kafka中。
     (2)Consumer：消费者，接收消息的一方。连接到Kafka上并接收消息，从而进行相应的业务处理。
     (3)Broker：服务代理节点。Broker可以看作一个独立的Kafka服务节点或者Kafka服务实例。一个或者多个Broker组成一个Kafka集群。
     
     在Kafka中还有两个概念--主题（Topic）与分区（Partition）。Kafka中的消息以主题为单位进行归类，生产者负责将消息发送到特定的主题（Topic）。
     而消费者负责订阅主题并进行消费。
-    
+
+### 1.2 Kafka与ZK关系
+
+利用ZK的有序节点、临时节点和监听控制，ZK帮Kafka提供了配置中心（管理Broker、Topic、Partition、Consumer的信息，包括元数据的变动）、负载均衡、命名服务、分布式通知、集群管理、选举、分布式锁。
 
 
+
+### 1.3 Kafka架构
+
+#### 1.3.1 Broker
+
+默认端口9092，生产者和消费者都需要跟这个Broker建立一个连接，才可以实现消息的收发。存储和转发消息。
+
+#### 1.3.2 消息
+
+可以叫做记录（Record），Record在客户端代码中可以是一个KV键值对。
+
+生产者对应的封装类是ProducerRecord，消费者对应的封装类是ConsumerRecord。消息在传输过程中需要序列化，需要在代码里指定序列化工具。
+
+#### 1.3.3 生产者
+
+为了提升消息发送速率，生产者不是逐条发送消息到Broker，而是批量发送，有batch.size决定多少条发送一次。
+
+#### 1.3.4 消费者
+
+用Pull模式接收数据，消费者通过max.poll.records控制一次获取多少条消息，默认是500。
+
+#### 1.3.5 Topic
+
+在Kafka里，队列名叫Topic，是一个逻辑概念，理解为一组消息的集合。
+
+生产者和Topic以及Topic和消费者的关系是多对多。
+
+生产者发送消息时，如果Topic不存在，会自动创建，有一个参数控制**auto.create.topics.enable**，默认是true。
+
+#### 1.3.6 Partition和Cluster
+
+
+
+#### 1.3.7 Partition副本Replica机制
+
+#### 1.3.8 Segment
+
+#### 1.3.9 Consumer Group
+
+#### 1.3.10 Consumer Offset
 
 
 
