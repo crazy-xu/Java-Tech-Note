@@ -56,15 +56,29 @@
 
 #### 1.3.6 Partition和Cluster
 
+分区概念，一个Topic可以划分成多个分区，在创建topic的时候指定，每个topic至少有一个分区。类似于分库分表，实现横向扩展和负载的目的。
 
+每个partition都有一个物理目录，在/tmp/kafka-logs/中。partition里的消息被读取后不会被删除，同一批消息在一个partition里顺序、追加写入的。
+
+分区数量怎么选择，可以通过性能测试的脚本验证。
 
 #### 1.3.7 Partition副本Replica机制
 
+每个partition可以有若干个副本（Replica）,副本必须在不同的Broker上面。
+
 #### 1.3.8 Segment
+
+将partition做一个切分，切分出来的单位叫做段（segment），kafka的存储文件是划分成段来存储的。每个segment都有一个数据文件和两个索引文件，这个三个文件是成套出现的。一个segment默认大小是1073731824 bytes(1G)，由log.segment.bytes控制。
 
 #### 1.3.9 Consumer Group
 
+
+
 #### 1.3.10 Consumer Offset
+
+偏移量，记录着下一条将要发送给cons----存在ZK，而是保存在服务端。
+
+
 
 
 
