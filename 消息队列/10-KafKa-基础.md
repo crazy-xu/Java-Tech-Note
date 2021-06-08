@@ -38,7 +38,13 @@
 
 #### 1.3.3 生产者
 
-为了提升消息发送速率，生产者不是逐条发送消息到Broker，而是批量发送，有batch.size决定多少条发送一次。
+为了提升消息发送速率，生产者不是逐条发送消息到Broker，而是批量发送。
+
+batch.size：决定多少条发送一次，默认是16k；
+
+linger.ms：批量发送的等待时间；
+
+buffer.memory：客户端缓冲区大小，默认32M，满了也会触发消息发送。
 
 #### 1.3.4 消费者
 
@@ -52,7 +58,9 @@
 
 生产者发送消息时，如果Topic不存在，会自动创建，有一个参数控制**auto.create.topics.enable**，默认是true。
 
-#### 1.3.6 Partition和Cluster
+
+
+#### 1.3.6 Partition
 
 分区概念，一个Topic可以划分成多个分区，在创建topic的时候指定，每个topic至少有一个分区。类似于分库分表，实现横向扩展和负载的目的。
 
@@ -62,19 +70,160 @@
 
 #### 1.3.7 Partition副本Replica机制
 
-每个partition可以有若干个副本（Replica）,副本必须在不同的Broker上面。
+每个partition可以有若干个副本（Replica）,副本必须在不同的Broker上面。副本数量小于等于Broker数量。
+
+副本有leader和follower的概念，leader在哪台机器，选举出来。
+
+生产者发消息和消费者读消息都是通过leader。follower的数据是从leader同步过来的。
 
 #### 1.3.8 Segment
 
 将partition做一个切分，切分出来的单位叫做段（segment），kafka的存储文件是划分成段来存储的。每个segment都有一个数据文件和两个索引文件，这个三个文件是成套出现的。一个segment默认大小是1073731824 bytes(1G)，由log.segment.bytes控制。
 
+默认存储路径：/tmp/kafka-logs/
+
+每个segment都至少有一个数据文件和两个索引文件，这三个文件是成套出现的。
+
 #### 1.3.9 Consumer Group
 
+如果生产者生产消息过快，会造成消息在Broker的堆积，影响性能。引入Consumer Group消费组概念，在代码中通过group id 来配置。消费通过一个topic的消费者不一定是同一个组，只有group id 相同的消费者才是同一个消费者组。
 
+> 如果消费者比partition少，一个消费者可以消费多个partition。
+>
+> 如果消费者比partition多，会有消费者存在消费不上。空闲状态。
+>
+> 由程序分配，不可变更。
 
 #### 1.3.10 Consumer Offset
 
-偏移量，记录着下一条将要发送给cons----存在ZK，而是保存在服务端。
+消息是有序的，会对每个消息进行编号，用来标识一条唯一的消息。这个编号叫做offset-偏移量。
+
+offset记录着下一条的发送给consumer的消息的序号。
+
+#### 1.3.11 消息幂等性
+
+```java
+enable.idempotence=true
+```
+
+Producer 自动升级为幂等性Producer，Kafka会自动去重。
+
+实现机制：
+
+* PID(Producer ID)：幂等性的生产者每个客户端都有一个唯一的编号。
+* sequence number：幂等性的生产者发送的每条消息都会带相应的sequence number，server端根据这个值来判断数据是否重复。
+  * 只能保证单分区上的幂等性，即一个幂等性Producer能够保证某个肢体的一个分区上不出现重复消息。
+  * 只能实现单会话上的幂等性，这里的会话指的是producer进程的一次运行，当重启producer进程之后，幂等性不保证。
+
+
+
+### 1.4 生产者事务
+
+Kafka的事务属于分布式事务。两阶段提交（2PC），如果大家都可以commit，那么就commit，否则abort。
+
+既然是2PC，就要有一个协调者角色，叫做Transaction Coordinator。通过事务日志来记录事务的状态，kafka使用特殊的topic_transaction_state来记录事务状态。
+
+如果生产者挂了，事务要在重启后可以继续处理，之前未处理完的事务，或者在其他机器上处理，必须要有一个唯一的ID，这个就是transaction.id。在配置enable.idempotence=true（事务实现的前提是幂等性）。事务ID相同的生产者，可以接着处理原来的事务。
+
+
+
+> ```java
+> producer.initTransactions(); // 初始化事务
+> producer.beginTransaction(); // 开启事务
+> producer.commitTransaction(); // 提交事务
+> producer.abortTransaction(); // 中止事务
+> producer.sendOffsetsToTransaction(); // 
+> ```
+
+
+
+```java
+public static void main(String[] args) {
+    Properties props=new Properties();
+    props.put("bootstrap.servers","192.168.44.160:9092");
+    props.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
+    props.put("value.serializer","org.apache.kafka.common.serialization.StringSerializer");
+    // 0 发出去就确认 | 1 leader 落盘就确认| all或-1 所有Follower同步完才确认
+    props.put("acks","all");
+    // 异常自动重试次数
+    props.put("retries",3);
+    // 多少条数据发送一次，默认16K
+    props.put("batch.size",16384);
+    // 批量发送的等待时间
+    props.put("linger.ms",5);
+    // 客户端缓冲区大小，默认32M，满了也会触发消息发送
+    props.put("buffer.memory",33554432);
+    // 获取元数据时生产者的阻塞时间，超时后抛出异常
+    props.put("max.block.ms",3000);
+
+    props.put("enable.idempotence",true);
+    // 事务ID，唯一
+    props.put("transactional.id", UUID.randomUUID().toString());
+
+    Producer<String,String> producer = new KafkaProducer<String,String>(props);
+
+    // 初始化事务
+    producer.initTransactions();
+
+    try {
+        producer.beginTransaction();
+        producer.send(new ProducerRecord<String,String>("transaction-test","1","1"));
+        producer.send(new ProducerRecord<String,String>("transaction-test","2","2"));
+        // Integer i = 1/0;
+        producer.send(new ProducerRecord<String,String>("transaction-test","3","3"));
+        // 提交事务
+        producer.commitTransaction();
+    } catch (KafkaException e) {
+        // 中止事务
+        producer.abortTransaction();
+    }
+    producer.close();
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
