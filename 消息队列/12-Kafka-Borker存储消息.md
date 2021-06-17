@@ -25,10 +25,10 @@
 
 ```shell
 ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic top1rep3part3
-
+```
 # replication-factor 副本数量
 # partitions 分区数量
-```
+
 
 副本分为两种角色，leader对外提供读写服务，follower只从leader异步拉取数据。
 
@@ -50,7 +50,7 @@ delete.topic.enable=true 开启永久删除开关，否则只是标记删除
 
 ```shell
 ./kafka-topics.sh --delete --zookeeper localhost:2181 --topic top1rep3part3
-
+```
 #### 副本在Broker的分布
 
 分配策略是有AdminUtils.scale的assignReplicasToBrokers函数决定的
@@ -116,9 +116,32 @@ Kafka并不是每一条消息都会建立索引，使用稀疏索引（sparse in
 
 Kafka索引的时间复杂度为O(log2n)+O(m)，n是索引文件里索引的个数，m为稀疏程度。
 
-
-
 #### 时间戳索引
+
+消息有记录时间戳的，客户端封装的ProducerRecord和ConsumerRecord都有一个long timestamp属性。
+
+1. 如果要基于时间切分日志文件，必须要记录时间戳。
+2. 如果要基于时间清理消息，必须要记录时间戳。
+
+时间戳有两种，一种是消息创建的时间戳，一种消费者在Broker追加写入的时间。
+
+```shell
+log.message.timestamp.type=CreateTime
+```
+
+默认是创建时间。如果是改成日志追加时间，则修改为LogAppendTime。
+
+查看最早的10条时间戳索引：
+
+```shell
+./kafka-dump-log.sh --files /tmp/kafka-logs/mytopic-0/000000000.timeindex | head 
+```
+
+
+
+
+
+
 
 
 
