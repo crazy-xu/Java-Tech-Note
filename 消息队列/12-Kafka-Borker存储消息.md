@@ -141,6 +141,24 @@ log.message.timestamp.type=CreateTime
 
 
 
+谁来主持选举？ Broker Controller ZK /Controller 监听各种有没有发生变化。
+
+谁可以参加选举？AR（所有）= ISR（保持同步）+OSR  （没有同步）
+
+​		从ISR里的集合选择新的leader，如果ISR 是空的，则只能从OSR 中选举（默认是关闭的unclean.leader.*=false）
+
+主从如何同步？
+
+找第一个broker做为leader------PacificA
+
+
+
+
+
+
+
+
+
 
 
 
