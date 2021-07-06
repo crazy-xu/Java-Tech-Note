@@ -25,7 +25,7 @@
    ```
 7. 将本地库的内容推送到远程库
    ```shell
-   git push -u origin master 
+   git push -u origin master/main
    ```
 
 
